@@ -15,4 +15,16 @@ class Book extends Model
         /* This mean that each book have many reviews*/
         return $this->hasMany(Review::class);
     }
+
+    public function scopePopular(Builder $query, $from = null, $to = null): Builder|QueryBuilder
+    {
+        return $query->withReviewsCount()
+            ->orderBy('reviews_count', 'desc');
+    }
+
+    public function scopeHighestRated(Builder $query, $from = null, $to = null): Builder|QueryBuilder
+    {
+        return $query->withAvgRating()
+            ->orderBy('reviews_avg_rating', 'desc');
+    }
 }
