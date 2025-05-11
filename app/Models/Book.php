@@ -28,4 +28,9 @@ class Book extends Model
         return $query->withAvgRating()
             ->orderBy('reviews_avg_rating', 'desc');
     }
+
+    public function scopeTitle($query, $title)
+    {
+        return $query->where('title', 'like', "%$title%");
+    }
 }
