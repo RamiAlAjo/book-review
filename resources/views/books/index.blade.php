@@ -42,10 +42,11 @@
             <a href="{{ route('books.show', $book->id) }}" class="book-title">{{ $book->title }}</a>
             <span class="book-author">by {{ $book->author }}</span>
         </div>
+
         <div>
           <div class="book-rating">
-            3.5
-          </div>
+                <x-star-rating :rating="$book->reviews_avg_rating" />
+              </div>
           <div class="book-review-count">
             out of 5 reviews
           </div>
