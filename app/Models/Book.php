@@ -54,10 +54,17 @@ class Book extends Model
     }
 
     // 7. Scope: Minimum number of reviews
-    public function scopeMinReviews(Builder $query, int $minReviews): Builder|QueryBuilder
-    {
-        return $query->where('reviews_count', '>=', $minReviews);
-    }
+    // public function scopeMinReviews(Builder $query, int $minReviews): Builder|QueryBuilder
+    // {
+    //     return $query->where('reviews_count', '>=', $minReviews);
+    // }
+
+    // 7. Scope: Minimum number of reviews
+public function scopeMinReviews(Builder $query, int $minReviews): Builder|QueryBuilder
+{
+    return $query->having('reviews_count', '>=', $minReviews); // Use having for aggregates
+}
+
 
     // 8. Reusable date filter method
     private function dateRangeFilter(Builder $query, $from = null, $to = null)
