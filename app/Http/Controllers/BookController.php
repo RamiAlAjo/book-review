@@ -2,108 +2,80 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Book;
-use Illuminate\Http\Request;
+use App\Models\Book;  // Import the Book model for interacting with the database
+use Illuminate\Http\Request;  // Import the Request class to handle HTTP requests
 
 class BookController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // This method handles the logic for displaying a list of books, optionally filtered by title or other criteria.
     public function index(Request $request)
     {
-        // Retrieve all books from the database initially
-        $books = Book::all();
-
-        // Retrieve the 'title' query parameter from the request, if any
+        // Retrieve the 'title' parameter from the request (if provided)
         $title = $request->input('title');
-
-        // Retrieve the 'filter' query parameter from the request (default to an empty string if not provided)
+        
+        // Retrieve the 'filter' parameter from the request, defaulting to an empty string if not provided
         $filter = $request->input('filter', '');
 
-        // If a 'title' is provided, filter the books based on the 'title' field
-        // This makes use of the 'when' method to conditionally apply filters
+        // Start a query on the Book model
         $books = Book::when(
-            $title,
-            fn($query, $title) => $query->title($title) // Apply a custom 'title' filter scope
+            $title, // If 'title' is provided in the request
+            fn($query, $title) => $query->title($title) // Apply a filter on the 'title' field of books
         );
 
-        // Uncommented code below would have used a traditional 'like' query to filter books by title
-        // This is commented out because the previous method is a more optimized approach (using scopes)
-        // $books = Book::when(
-        //     $title,
-        //     fn($query, $title) => $query->where('title', 'like', "%$title%")
-        // )->get();
-
-        // Apply additional filtering based on the 'filter' parameter
-        // Using 'match' to apply different filtering methods depending on the filter value
-        // Each case in the match statement represents a different filter option
+        // Apply different filters based on the value of 'filter' in the request
         $books = match ($filter) {
-            'popular_last_month' => $books->popularLastMonth(), // Custom scope to get popular books in the last month
-            'popular_last_6months' => $books->popularLast6Months(), // Custom scope for popular books in the last 6 months
-            'highest_rated_last_month' => $books->highestRatedLastMonth(), // Custom scope for highest rated books last month
-            'highest_rated_last_6months' => $books->highestRatedLast6Months(), // Custom scope for highest rated books in the last 6 months
-            default => $books->latest()->withAvgRating()->withReviewsCount() // Default case: get the latest books with average rating and review count
+            'popular_last_month' => $books->popularLastMonth(), // Get popular books from the last month
+            'popular_last_6months' => $books->popularLast6Months(), // Get popular books from the last 6 months
+            'highest_rated_last_month' => $books->highestRatedLastMonth(), // Get highest rated books from the last month
+            'highest_rated_last_6months' => $books->highestRatedLast6Months(), // Get highest rated books from the last 6 months
+            default => $books->latest()->withAvgRating()->withReviewsCount() // Default: Get latest books with average rating and reviews count
         };
 
-        // Create a unique cache key based on the filter and title parameters to store the results
-        $cacheKey = 'books:' . $filter . ':' . $title;
+        // Execute the query and get the results (no caching here)
+        $books = $books->get();
 
-        // Check if the filtered books are already cached, otherwise, fetch the books and store them in cache for 1 hour (3600 seconds)
-        $books = cache()->remember(
-            $cacheKey, // Cache key based on filter and title
-            3600, // Cache duration in seconds (1 hour)
-            fn() => $books->get() // If not cached, execute the query to retrieve the books from the database
-        );
-
-        // Return the view with the filtered books
-        return view('books.index', compact('books'));
+        // Return the 'books.index' view, passing the retrieved books to the view
+        return view('books.index', ['books' => $books]);
     }
 
-
-    /**
-     * Show the form for creating a new resource.
-     */
+    // This method renders the form for creating a new book (currently not implemented)
     public function create()
     {
         //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    // This method handles the logic for storing a newly created book (currently not implemented)
     public function store(Request $request)
     {
         //
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    // This method displays details for a specific book, including reviews and ratings
+    public function show(int $id)
     {
-        //
+        // Fetch the book with the given ID, along with its reviews (ordered by the latest reviews)
+        // Also, retrieve the average rating and review count for the book
+        $book = Book::with([
+            'reviews' => fn($query) => $query->latest() // Order reviews by latest
+        ])->withAvgRating()->withReviewsCount()->findOrFail($id); // Fetch the book, or fail if not found
+
+        // Return the 'books.show' view, passing the retrieved book to the view
+        return view('books.show', ['book' => $book]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+    // This method renders the form for editing an existing book (currently not implemented)
     public function edit(string $id)
     {
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+    // This method handles the logic for updating an existing book (currently not implemented)
     public function update(Request $request, string $id)
     {
         //
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    // This method handles the logic for deleting an existing book (currently not implemented)
     public function destroy(string $id)
     {
         //
