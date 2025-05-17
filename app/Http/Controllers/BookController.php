@@ -12,7 +12,7 @@ class BookController extends Controller
     {
         // Retrieve the 'title' parameter from the request (if provided)
         $title = $request->input('title');
-        
+
         // Retrieve the 'filter' parameter from the request, defaulting to an empty string if not provided
         $filter = $request->input('filter', '');
 
